@@ -1,10 +1,10 @@
-public class Vertex
+public class Ver3d
 {
     private final double x;
     private final double y;
     private final double z;
 
-    public Vertex(double x, double y, double z)
+    public Ver3d(double x, double y, double z)
     {
         this.x = x;
         this.y = y;
@@ -26,25 +26,25 @@ public class Vertex
         return z;
     }
 
-    public Vertex plus(Vertex v)
+    public Ver3d plus(Ver3d v)
     {
-        return new Vertex(getX() + v.getX(), getY() + v.getY(), getZ() + v.getZ());
+        return new Ver3d(getX() + v.getX(), getY() + v.getY(), getZ() + v.getZ());
     }
 
-    public Vertex minus(Vertex v)
+    public Ver3d minus(Ver3d v)
     {
-        return new Vertex(getX() - v.getX(), getY() - v.getY(), getZ() - v.getZ());
+        return new Ver3d(getX() - v.getX(), getY() - v.getY(), getZ() - v.getZ());
     }
 
-    public Vertex times(Vertex v)
+    public Ver3d times(Ver3d v)
     {
         double i = getY() * v.getZ() - getZ() * v.getY();
         double j = getZ() * v.getX() - getX() * v.getZ();
         double k = getX() * v.getY() - getY() * v.getX();
-        return new Vertex(i, j, k);
+        return new Ver3d(i, j, k);
     }
 
-    public double scalar(Vertex v)
+    public double scalar(Ver3d v)
     {
         return getX() * v.getX() + getY() * v.getY() + getZ() * v.getZ();
     }
@@ -54,9 +54,19 @@ public class Vertex
         return Math.sqrt(x * x + y * y + z * z);
     }
 
-    public Vertex normalize()
+    public Ver3d normalize()
     {
         Double length = length();
-        return new Vertex(x / length, y / length, z / length);
+        return new Ver3d(x / length, y / length, z / length);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Ver3d{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
     }
 }

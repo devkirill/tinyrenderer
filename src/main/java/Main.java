@@ -32,59 +32,57 @@ public class Main
         }
     }
 
-    public static void triangle(Point t0, Point t1, Point t2, Image image, Color color)
+    public static void triangle(Ver3i t0, Ver3i t1, Ver3i t2, Image image, Color color)
     {
         if (t0.getY() > t1.getY())
         {
-            Point t = t0;
+            Ver3i t = t0;
             t0 = t1;
             t1 = t;
         }
         if (t0.getY() > t2.getY())
         {
-            Point t = t0;
+            Ver3i t = t0;
             t0 = t2;
             t2 = t;
         }
         if (t1.getY() > t2.getY())
         {
-            Point t = t1;
+            Ver3i t = t1;
             t1 = t2;
             t2 = t;
         }
 
         int total_height = t2.getY() - t0.getY();
-        for (int y = t0.getY(); y <= t1.getY(); y++)
+        for (int y = 0; y < total_height; y++)
         {
-            int segment_height = t1.getY() - t0.getY() + 1;
-            double alpha = (double) (y - t0.getY()) / total_height;
-            double beta = (double) (y - t0.getY()) / segment_height;
-            Point A = t0.plus(t2.minus(t0).times(alpha));
-            Point B = t0.plus(t1.minus(t0).times(beta));
-            for (int x = min(A.getX(), B.getX()), to = max(A.getX(), B.getX()); x <= to; x++)
+            boolean second_half = y > t1.getY() - t0.getY() || t1.getY() == t0.getY();
+            int segment_height = second_half ? t2.getY() - t1.getY() : t1.getY() - t0.getY();
+            double alpha = (double) y / total_height;
+            double beta = (double) (y - (second_half ? t1.getY() - t0.getY() : 0)) / segment_height;
+            Ver3i A = t0.plus(t2.minus(t0).times(alpha));
+            Ver3i B = second_half ? t1.plus(t2.minus(t1).times(beta)) : t0.plus(t1.minus(t0).times(beta));
+            if (A.getX() > B.getX())
             {
-                image.setPixel(x, y, color);
+                Ver3i t = A;
+                A = B;
+                B = t;
             }
-        }
-        for (int y = t1.getY(); y <= t2.getY(); y++)
-        {
-            int segment_height = t2.getY() - t1.getY() + 1;
-            double alpha = (double) (y - t0.getY()) / total_height;
-            double beta = (double) (y - t1.getY()) / segment_height;
-            Point A = t0.plus(t2.minus(t0).times(alpha));
-            Point B = t1.plus(t2.minus(t1).times(beta));
-            for (int x = min(A.getX(), B.getX()), to = max(A.getX(), B.getX()); x <= to; x++)
+            for (int x = A.getX(); x <= B.getX(); x++)
             {
-                image.setPixel(x, y, color);
+                double phi = A.getX() == B.getX() ? 1. : (double) (x - A.getX()) / (double) (B.getX() - A.getX());
+                Ver3i P = B.minus(A).times(phi).plus(A);
+                image.setPixel(P.getX(), P.getY(), P.getZ(), color);
             }
         }
     }
 
-    public static Point toPoint(Vertex vertex, Image image)
+    public static Ver3i toVer3i(Ver3d ver3d, Image image)
     {
-        int x = (int) ((vertex.getX() + 1.) * image.getWidth() / 2.);
-        int y = (int) ((vertex.getY() + 1.) * image.getHeight() / 2.);
-        return new Point(x, y);
+        int x = (int) ((ver3d.getX() + 1.) * image.getWidth() / 2.);
+        int y = (int) ((ver3d.getY() + 1.) * image.getHeight() / 2.);
+        int z = (int) ((ver3d.getZ() + 1.) * max(image.getWidth(), image.getHeight()) / 2.);
+        return new Ver3i(x, y, z);
     }
 
     public static void main(String args[])
@@ -94,23 +92,23 @@ public class Main
         WavefrontObj obj = WavefrontObj.parse("src/main/resources/african_head/african_head.obj");
 //        WavefrontObj obj = WavefrontObj.parse("src/main/resources/diablo3_pose/diablo3_pose.obj");
 
-        Vertex light = new Vertex(0, 0, -1).normalize();
+        Ver3d light = new Ver3d(0, 0, -1).normalize();
 
         obj.getPolygons()
                 .forEach(p -> {
-                    Vertex v0 = obj.getVertices().get(p.get(0));
-                    Vertex v1 = obj.getVertices().get(p.get(1));
-                    Vertex v2 = obj.getVertices().get(p.get(2));
+                    Ver3d v0 = obj.getVertices().get(p.get(0));
+                    Ver3d v1 = obj.getVertices().get(p.get(1));
+                    Ver3d v2 = obj.getVertices().get(p.get(2));
 
-                    Vertex b1 = v2.minus(v0);
-                    Vertex b2 = v1.minus(v0);
-                    Vertex norm = b1.times(b2).normalize();
+                    Ver3d b1 = v2.minus(v0);
+                    Ver3d b2 = v1.minus(v0);
+                    Ver3d norm = b1.times(b2).normalize();
                     double intensity = norm.scalar(light);
                     if (intensity > 0)
                     {
-                        Point p0 = toPoint(v0, image);
-                        Point p1 = toPoint(v1, image);
-                        Point p2 = toPoint(v2, image);
+                        Ver3i p0 = toVer3i(v0, image);
+                        Ver3i p1 = toVer3i(v1, image);
+                        Ver3i p2 = toVer3i(v2, image);
                         triangle(p0, p1, p2, image, new Color(intensity, intensity, intensity));
                     }
                 });

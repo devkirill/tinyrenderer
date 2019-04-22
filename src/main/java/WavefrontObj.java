@@ -7,16 +7,16 @@ import java.util.stream.Collectors;
 
 public class WavefrontObj
 {
-    private final List<Vertex> vertices;
+    private final List<Ver3d> vertices;
     private final List<Polygon> polygons;
 
-    public WavefrontObj(List<Vertex> vertices, List<Polygon> polygons)
+    public WavefrontObj(List<Ver3d> vertices, List<Polygon> polygons)
     {
         this.vertices = vertices;
         this.polygons = polygons;
     }
 
-    public List<Vertex> getVertices()
+    public List<Ver3d> getVertices()
     {
         return vertices;
     }
@@ -42,9 +42,9 @@ public class WavefrontObj
                 .map(line -> Arrays.asList(line.split(" +")))
                 .collect(Collectors.toList());
 
-        List<Vertex> vertices = splitFileLines.stream()
+        List<Ver3d> vertices = splitFileLines.stream()
                 .filter(l -> l.get(0).equals("v"))
-                .map(l -> new Vertex(Double.valueOf(l.get(1)), Double.valueOf(l.get(2)), Double.valueOf(l.get(3))))
+                .map(l -> new Ver3d(Double.valueOf(l.get(1)), Double.valueOf(l.get(2)), Double.valueOf(l.get(3))))
                 .collect(Collectors.toList());
 
         List<Polygon> polygons = splitFileLines.stream()
