@@ -53,6 +53,7 @@ public class WavefrontObj
                         .skip(1)
                         .map(s -> Arrays.asList(s.split("/")).get(0))
                         .map(Integer::valueOf)
+                        .map(v -> v - 1)
                         .collect(Collectors.toList()))
                 .map(Polygon::new)
                 .collect(Collectors.toList());
@@ -76,7 +77,7 @@ public class WavefrontObj
 
         public Integer get(int node)
         {
-            return polygon.get(node % polygon.size()) - 1;
+            return polygon.get(node % polygon.size());
         }
 
         public List<Integer> getPolygon()
