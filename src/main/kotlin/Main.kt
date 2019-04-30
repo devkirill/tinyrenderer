@@ -1,31 +1,34 @@
-import geom.Vec3d
-import geom.Vec3i
-import utils.Color
+import geom.vec.*
 import utils.Image
+import utils.Texture
 import utils.WavefrontObj
 import java.lang.Math.max
+import java.lang.Math.min
 
-fun triangle(t0: Vec3i, t1: Vec3i, t2: Vec3i, image: Image, color: Color) {
-    var t0 = t0
-    var t1 = t1
-    var t2 = t2
-    if (t0.y > t1.y) t0 = t1.also { t1 = t0 }
-    if (t0.y > t2.y) t0 = t2.also { t2 = t0 }
-    if (t1.y > t2.y) t1 = t2.also { t2 = t1 }
+fun barycentric(vararg pts: Vec3i, P: Vec2i): Vec3d {
+    val u = cross(Vec3d(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x), Vec3d(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y))
+    if (Math.abs(u.z) < 1) return Vec3d(-1, 1, 1)
+    return Vec3d(1.0 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z)
+}
 
-    val totalHeight = t2.y - t0.y
-    for (y in 0 until totalHeight) {
-        val secondHalf = y > t1.y - t0.y || t1.y == t0.y
-        val segmentHeight = if (secondHalf) t2.y - t1.y else t1.y - t0.y
-        val alpha = y.toDouble() / totalHeight
-        val beta = (y - if (secondHalf) t1.y - t0.y else 0).toDouble() / segmentHeight
-        var a = t0 + (t2 - t0) * alpha
-        var b = if (secondHalf) t1 + (t2 - t1) * beta else t0 + (t1 - t0) * beta
-        if (a.x > b.x) a = b.also { b = a }
-        for (x in a.x..b.x) {
-            val phi = if (a.x == b.x) 1.0 else (x - a.x).toDouble() / (b.x - a.x).toDouble()
-            val p = a + (b - a) * phi
-            image[p.x, p.y, p.z.toDouble()] = color
+fun triangle(vararg pts: Vec3i, image: Image, brightness: Double = 1.0, textureCoord: List<Vec2d>, texture: Texture) {
+    var boxmin = Vec2i(image.width - 1, image.height - 1)
+    var boxmax = Vec2i(0, 0)
+    for (i in 0..2) {
+        boxmin = Vec2i(min(boxmin.x, pts[i].x), min(boxmin.y, pts[i].y))
+        boxmax = Vec2i(max(boxmax.x, pts[i].x), max(boxmax.y, pts[i].y))
+    }
+
+    for (x in boxmin.x..boxmax.x) {
+        for (y in boxmin.y..boxmax.y) {
+            val coord = barycentric(*pts, P = Vec2i(x, y))
+            if (coord.x >= 0 && coord.y >= 0 && coord.z >= 0) {
+                val z = pts[0].z * coord.x + pts[1].z * coord.y + pts[2].z * coord.z
+                val v1 = Vec3d(textureCoord[0].x, textureCoord[1].x, textureCoord[2].x)
+                val v2 = Vec3d(textureCoord[0].y, textureCoord[1].y, textureCoord[2].y)
+                val p = Vec2d(scalar(coord, v1), scalar(coord, v2))
+                image[x, y, z] = texture[p.x, p.y] * brightness
+            }
         }
     }
 }
@@ -41,26 +44,20 @@ fun main(args: Array<String>) {
     val image = Image(1000, 1000)
 
     val obj = WavefrontObj.parse("src/main/resources/african_head/african_head.obj")
-//    val obj = utils.WavefrontObj.parse("src/main/resources/boggie/body.obj")
 //    val obj = utils.WavefrontObj.parse("src/main/resources/diablo3_pose/diablo3_pose.obj")
+    val texture = Texture("src/main/resources/african_head/african_head_diffuse.png")
 
-    val light = Vec3d(0.0, 0.0, -1.0).normalize()
+    val light = Vec3d(0.0, 0.0, 1.0).normalize()
 
     obj.polygons
             .forEach { p ->
-                val v0 = obj.vertices[p[0]]
-                val v1 = obj.vertices[p[1]]
-                val v2 = obj.vertices[p[2]]
+                val v = (0..2).map { obj.vertices[p[it].vertice] }
 
-                val b1 = v2 - v0
-                val b2 = v1 - v0
-                val norm = b1.cross(b2).normalize()
-                val intensity = norm.scalar(light)
+                val norm = cross(v[1] - v[0], v[2] - v[0]).normalize()
+                val intensity = scalar(norm, light)
                 if (intensity > 0) {
-                    val p0 = toVer3i(v0, image)
-                    val p1 = toVer3i(v1, image)
-                    val p2 = toVer3i(v2, image)
-                    triangle(p0, p1, p2, image, Color(intensity, intensity, intensity))
+                    val pi = v.map { toVer3i(it, image) }
+                    triangle(*pi.toTypedArray(), image = image, brightness = intensity, textureCoord = (0..2).map { obj.textureCoords[p[it].texture] }, texture = texture)
                 }
             }
 
