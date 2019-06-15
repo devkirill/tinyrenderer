@@ -1,6 +1,6 @@
 import geom.vec.*
 import utils.Image
-import utils.Texture
+import utils.VectorImage
 import utils.WavefrontObj
 import java.lang.Math.max
 import java.lang.Math.min
@@ -11,7 +11,7 @@ fun barycentric(vararg pts: Vec3i, P: Vec2i): Vec3d {
     return Vec3d(1.0 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z)
 }
 
-fun triangle(vararg pts: Vec3i, image: Image, brightness: Double = 1.0, textureCoord: List<Vec2d>, texture: Texture) {
+fun triangle(vararg pts: Vec3i, image: Image, brightness: Double = 1.0, textureCoord: List<Vec2d>, texture: VectorImage) {
     var boxmin = Vec2i(image.width - 1, image.height - 1)
     var boxmax = Vec2i(0, 0)
     for (i in 0..2) {
@@ -27,7 +27,7 @@ fun triangle(vararg pts: Vec3i, image: Image, brightness: Double = 1.0, textureC
                 val v1 = Vec3d(textureCoord[0].x, textureCoord[1].x, textureCoord[2].x)
                 val v2 = Vec3d(textureCoord[0].y, textureCoord[1].y, textureCoord[2].y)
                 val p = Vec2d(scalar(coord, v1), scalar(coord, v2))
-                image[x, y, z] = texture[p.x, p.y] * brightness
+                image[x, y, z] = texture[p] * brightness
             }
         }
     }
@@ -44,8 +44,9 @@ fun main(args: Array<String>) {
     val image = Image(1000, 1000)
 
     val obj = WavefrontObj.parse("src/main/resources/african_head/african_head.obj")
-//    val obj = utils.WavefrontObj.parse("src/main/resources/diablo3_pose/diablo3_pose.obj")
-    val texture = Texture("src/main/resources/african_head/african_head_diffuse.png")
+//    val obj = WavefrontObj.parse("src/main/resources/diablo3_pose/diablo3_pose.obj")
+    val texture = VectorImage("src/main/resources/african_head/african_head_diffuse.png")
+//    val texture = VectorImage("src/main/resources/diablo3_pose/diablo3_pose_diffuse.png")
 
     val light = Vec3d(0.0, 0.0, 1.0).normalize()
 
