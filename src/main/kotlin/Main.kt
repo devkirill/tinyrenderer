@@ -41,6 +41,13 @@ fun toVer3i(ver3d: Vec3d, image: Image): Vec3i {
     return Vec3i(x, y, z)
 }
 
+fun transform(ver3d: Vec3d): Vec3d {
+    val z = ver3d.z
+    val c = 2.5
+    val zc = 1 - z / c
+    return Vec3d(ver3d.x / zc, ver3d.y / zc, ver3d.z / zc)
+}
+
 fun render(image: Image, model: String) {
     val obj = WavefrontObj.parse("$model.obj")
     val texture = VectorImage("${model}_diffuse.png")
@@ -54,7 +61,9 @@ fun render(image: Image, model: String) {
                 val norm = cross(v[1] - v[0], v[2] - v[0]).normalize()
                 val intensity = scalar(norm, light)
                 if (intensity > 0) {
-                    val pi = v.map { toVer3i(it, image) }
+                    val pi = v
+                            .map { transform(it) }
+                            .map { toVer3i(it, image) }
                     triangle(*pi.toTypedArray(), image = image, brightness = intensity, textureCoord = (0..2).map { obj.textureCoords[p[it].texture] }, texture = texture)
                 }
             }
