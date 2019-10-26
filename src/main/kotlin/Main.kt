@@ -2,8 +2,9 @@ import geom.vec.*
 import utils.Image
 import utils.VectorImage
 import utils.WavefrontObj
-import java.lang.Math.max
-import java.lang.Math.min
+import utils.get
+import kotlin.math.max
+import kotlin.math.min
 
 fun barycentric(vararg pts: Vec3i, P: Vec2i): Vec3d {
     val u = cross(Vec3d(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x), Vec3d(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y))
@@ -40,17 +41,9 @@ fun toVer3i(ver3d: Vec3d, image: Image): Vec3i {
     return Vec3i(x, y, z)
 }
 
-fun main(args: Array<String>) {
-    val image = Image(1000, 1000)
-
-    val model = "src/main/resources/african_head/african_head"
-//    val model = "src/main/resources/african_head/african_head_eye_inner"
-//    val model = "src/main/resources/boggie/body"
-//    val model = "src/main/resources/diablo3_pose/diablo3_pose"
+fun render(image: Image, model: String) {
     val obj = WavefrontObj.parse("$model.obj")
-//    val obj = WavefrontObj.parse("src/main/resources/diablo3_pose/diablo3_pose.obj")
     val texture = VectorImage("${model}_diffuse.png")
-//    val texture = VectorImage("src/main/resources/diablo3_pose/diablo3_pose_diffuse.png")
 
     val light = Vec3d(0.0, 0.0, 1.0).normalize()
 
@@ -65,6 +58,19 @@ fun main(args: Array<String>) {
                     triangle(*pi.toTypedArray(), image = image, brightness = intensity, textureCoord = (0..2).map { obj.textureCoords[p[it].texture] }, texture = texture)
                 }
             }
+}
+
+fun main(args: Array<String>) {
+    val image = Image(1000, 1000)
+
+    render(image, "src/main/resources/african_head/african_head")
+    render(image, "src/main/resources/african_head/african_head_eye_inner")
+
+//    render(image, "src/main/resources/boggie/body")
+//    render(image, "src/main/resources/boggie/eyes")
+//    render(image, "src/main/resources/boggie/head")
+
+//    render(image, "src/main/resources/diablo3_pose/diablo3_pose")
 
     image.saveImage("output")
 }
