@@ -43,9 +43,13 @@ fun toVer3i(ver3d: Vec3d, image: Image): Vec3i {
 fun main(args: Array<String>) {
     val image = Image(1000, 1000)
 
-    val obj = WavefrontObj.parse("src/main/resources/african_head/african_head.obj")
+    val model = "src/main/resources/african_head/african_head"
+//    val model = "src/main/resources/african_head/african_head_eye_inner"
+//    val model = "src/main/resources/boggie/body"
+//    val model = "src/main/resources/diablo3_pose/diablo3_pose"
+    val obj = WavefrontObj.parse("$model.obj")
 //    val obj = WavefrontObj.parse("src/main/resources/diablo3_pose/diablo3_pose.obj")
-    val texture = VectorImage("src/main/resources/african_head/african_head_diffuse.png")
+    val texture = VectorImage("${model}_diffuse.png")
 //    val texture = VectorImage("src/main/resources/diablo3_pose/diablo3_pose_diffuse.png")
 
     val light = Vec3d(0.0, 0.0, 1.0).normalize()

@@ -10,13 +10,16 @@ class VectorImage(private val image: BufferedImage) {
     constructor(file: File) : this(ImageIO.read(file))
     constructor(path: String) : this(File(path))
 
-    operator fun get(x: Double, y: Double): Int = image.getRGB(toInt(x, image.width), toInt(y, image.height))
+    val width = image.width
+    val height = image.height
 
-    operator fun set(x: Double, y: Double, c: Int) = image.setRGB(toInt(x, image.width), toInt(y, image.height), c)
+    operator fun get(x: Double, y: Double): Int = image.getRGB(toInt(x, width), toInt(y, height))
 
-    operator fun get(point: Vec2d): Color = Color(get(point.x, 1 - point.y))
+    operator fun set(x: Double, y: Double, c: Int) = image.setRGB(toInt(x, width), toInt(y, height), c)
 
     companion object {
         private fun toInt(d: Double, s: Int): Int = maxOf(0, minOf(s - 1, (d * s).toInt()))
     }
 }
+
+operator fun VectorImage.get(point: Vec2d): Color = Color(get(point.x, 1 - point.y))
