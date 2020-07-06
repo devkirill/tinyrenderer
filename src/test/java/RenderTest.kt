@@ -31,22 +31,6 @@ data class Render(var output : String = "output", var resources: MutableList<Str
 }
 
 internal class RenderTest {
-    fun render(result: String, vararg resources: String) {
-        val imageRender = ImageRender(
-                Image(1000, 1000),
-                eye = Vec3d(0, 0, 1),
-                center = Vec3d(0, 0, 0),
-                light = Vec3d(0.0, 0.0, 1.0).normalize(),
-                up = Vec3d(0, 1, 0)
-        )
-
-        for (resource in resources) {
-            imageRender.render(resource)
-        }
-
-        imageRender.image.saveImage(result)
-    }
-
     @Test
     fun renderDiablo() {
         Render {
