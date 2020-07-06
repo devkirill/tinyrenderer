@@ -7,7 +7,7 @@ import java.io.FileReader
 import java.io.IOException
 import kotlin.streams.toList
 
-class WavefrontObj(val vertices: List<Vec3d>, val textureCoords: List<Vec2d>, val polygons: List<Polygon>) {
+class WavefrontObj(val vertices: List<Vec3d>, val textureCoords: List<Vec2d>, val polygons: List<Polygon>, val normalMap: List<Vec3d>) {
 
     class Polygon(val polygon: List<Vertex>) {
         val size: Int get() = polygon.size
@@ -43,6 +43,11 @@ class WavefrontObj(val vertices: List<Vec3d>, val textureCoords: List<Vec2d>, va
                     .map { l -> Vec2d(l[1].toDouble(), l[2].toDouble()) }
                     .toList()
 
+            val normalMap = splitFileLines
+                    .filter { l -> l[0] == "vn" }
+                    .map { l -> Vec3d(l[1].toDouble(), l[2].toDouble(), l[3].toDouble()) }
+                    .toList()
+
             val polygons = splitFileLines
                     .filter { l -> l[0] == "f" }
                     .map { l ->
@@ -56,7 +61,7 @@ class WavefrontObj(val vertices: List<Vec3d>, val textureCoords: List<Vec2d>, va
                     .map { Polygon(it) }
                     .toList()
 
-            return WavefrontObj(vertices, textureCoord, polygons)
+            return WavefrontObj(vertices, textureCoord, polygons, normalMap)
         }
     }
 }
