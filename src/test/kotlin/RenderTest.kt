@@ -12,6 +12,8 @@ internal class RenderTest {
     @Test
     fun african_head() {
         val image = Render(2048, 2048) {
+            importModel("resources/african_head/african_head_eye_inner")
+            importModel("resources/african_head/african_head_eye_outer")
             importModel("resources/african_head/african_head")
         }
         image.saveImage("african_head")

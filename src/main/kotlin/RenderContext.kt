@@ -18,13 +18,26 @@ data class RenderContext(val width: Int, val height: Int) {
         image.triangle(Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180), GREEN)
     }
 
+    val light_dir = Vec3d(0.0, 0.0, -1.0)
+
     fun importModel(path: String) {
         val obj = WavefrontObj.parse("$path.obj")
         for (p in obj.polygons) {
-            val t = p.polygon.map { it.vertice }.map { obj.vertices[it] }
-            image.line(t[0], t[1], WHITE)
-            image.line(t[1], t[2], WHITE)
-            image.line(t[0], t[2], WHITE)
+            val v = p.polygon.map { it.vertice }.map { obj.vertices[it] }
+            val n = ((v[2] - v[0]) cross (v[1] - v[0])).normalize
+            val intensity = n scalar light_dir
+            if (intensity > 0) {
+                fun convert(p: Vec2d): Vec2i {
+                    val m = min(width, height)
+                    return (Vec2i(p.x * m, p.y * m) + Vec2i(width, height)) / 2
+                }
+
+                val t = v.map { convert(Vec2d(it.x, it.y)) }
+                image.triangle(t[0], t[1], t[2], WHITE * intensity)
+            }
+//            image.line(v[0], v[1], WHITE)
+//            image.line(v[1], v[2], WHITE)
+//            image.line(v[0], v[2], WHITE)
         }
     }
 }
@@ -81,17 +94,19 @@ fun Image.triangle(t0: Vec2i, t1: Vec2i, t2: Vec2i, color: Color = WHITE) {
     for (i in 0..totalHeight) {
         val secondHalf = (i > t[1].y - t[0].y) || (t[1].y == t[0].y)
         val segmentHeight = if (secondHalf) (t[2] - t[1]).y else (t[1] - t[0]).y
-        var a = t[0] + (t[2] - t[0]) * i / totalHeight
-        val beta = i - (if (secondHalf) (t[1] - t[0]).y else 0)
-        var b =
-            if (secondHalf) t[1] + (t[2] - t[1]) * beta / segmentHeight else t[0] + (t[1] - t[0]) * beta / segmentHeight
-        if (a.x > b.x) {
-            val z = a
-            a = b
-            b = z
-        }
-        for (j in a.x..b.x) {
-            this[j, t[0].y + i] = color
+        if (totalHeight != 0) {
+            var a = t[0] + (t[2] - t[0]) * i / totalHeight
+            val beta = i - (if (secondHalf) (t[1] - t[0]).y else 0)
+            var b =
+                if (secondHalf) t[1] + (t[2] - t[1]) * beta / segmentHeight else t[0] + (t[1] - t[0]) * beta / segmentHeight
+            if (a.x > b.x) {
+                val z = a
+                a = b
+                b = z
+            }
+            for (j in a.x..b.x) {
+                this[j, t[0].y + i] = color
+            }
         }
     }
 }
